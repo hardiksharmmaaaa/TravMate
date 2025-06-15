@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, session, url_for
 from flask_cors import CORS
 import sys
 import os
 from datetime import datetime
+from authlib.integrations.flask_client import OAuth
+from flask import make_response
 
 # Add the parent directory to the Python path to import trip_agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,6 +15,24 @@ import json
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
+
+# --- Google OAuth Setup ---
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
+
+# Configure OAuth
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID'),  # <-- Insert your Google Client ID here
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET'),  # <-- Insert your Google Client Secret here
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
+    client_kwargs={'scope': 'openid email profile'},
+)
 
 class TripPlannerAPI:
     def __init__(self):
@@ -299,6 +319,30 @@ def plan_trip():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'TravMate API is running'})
+
+@app.route('/api/login')
+def login():
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/api/authorize')
+def authorize():
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    # Store user info in session or issue JWT here
+    session['user'] = user_info
+    # Optionally, generate a JWT and return to frontend
+    response = make_response(redirect('/'))  # Redirect to frontend home
+    response.set_cookie('user_email', user_info.get('email', ''))
+    return response
+
+@app.route('/api/logout')
+def logout():
+    session.pop('user', None)
+    response = make_response(redirect('/'))
+    response.set_cookie('user_email', '', expires=0)
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001) 

@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, redirect, session, url_for
 from flask_cors import CORS
+from flask_restx import Api, Resource, fields
 import sys
 import os
 from datetime import datetime
@@ -15,6 +16,27 @@ import json
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
+
+# Initialize Swagger UI
+api = Api(app, version='1.0', 
+    title='TravMate API',
+    description='AI-Powered Trip Planning API',
+    doc='/api/docs'  # Swagger UI will be available at /api/docs
+)
+
+# Create namespaces for different API endpoints
+ns_trip = api.namespace('trip', description='Trip planning operations')
+ns_auth = api.namespace('auth', description='Authentication operations')
+
+# Define models for request/response
+trip_input = api.model('TripInput', {
+    'travelType': fields.String(required=True, description='Type of travel (e.g., leisure, business)'),
+    'startDate': fields.String(required=True, description='Start date of the trip'),
+    'endDate': fields.String(required=True, description='End date of the trip'),
+    'budget': fields.String(required=True, description='Trip budget range'),
+    'interests': fields.String(required=True, description='Travel interests'),
+    'destination': fields.String(required=False, description='Preferred destination country')
+})
 
 # --- Google OAuth Setup ---
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
@@ -267,7 +289,7 @@ class TripPlannerAPI:
             </div>
             
             <div class="bg-yellow-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-yellow-800 mb-4">💰 Budget Breakdown</h2>
+                <h2 class="text-2xl font-bold text-yellow-800 mb-4">�� Budget Breakdown</h2>
                 {self.format_ai_output(budget_result)}
             </div>
             
@@ -287,62 +309,56 @@ class TripPlannerAPI:
 # Initialize the trip planner
 trip_planner = TripPlannerAPI()
 
-@app.route('/api/plan-trip', methods=['POST'])
-def plan_trip():
-    try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        # Validate required fields
-        required_fields = ['destination', 'startDate', 'endDate', 'travelers', 'budget', 'travelType']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Plan the trip
-        results = trip_planner.plan_trip(data)
-        
-        return jsonify({
-            'success': True,
-            'data': results,
-            'itinerary': results['combined_itinerary']
+# API Routes with Swagger documentation
+@ns_trip.route('/plan')
+class TripPlanner(Resource):
+    @ns_trip.expect(trip_input)
+    @ns_trip.doc('plan_trip', 
+        responses={
+            200: 'Success',
+            400: 'Invalid input',
+            500: 'Server error'
         })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    def post(self):
+        """Plan a new trip based on user preferences"""
+        try:
+            result = trip_planner.plan_trip(request.json)
+            return jsonify(result)
+        except Exception as e:
+            return {'error': str(e)}, 500
 
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy', 'message': 'TravMate API is running'})
+@ns_trip.route('/health')
+class HealthCheck(Resource):
+    @ns_trip.doc('health_check')
+    def get(self):
+        """Check if the API is running"""
+        return {'status': 'healthy', 'timestamp': datetime.now().isoformat()}
 
-@app.route('/api/login')
-def login():
-    redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+@ns_auth.route('/login')
+class Login(Resource):
+    @ns_auth.doc('google_login')
+    def get(self):
+        """Initiate Google OAuth login"""
+        return google.authorize_redirect(url_for('authorize', _external=True))
 
-@app.route('/api/authorize')
-def authorize():
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    # Store user info in session or issue JWT here
-    session['user'] = user_info
-    # Optionally, generate a JWT and return to frontend
-    response = make_response(redirect('/'))  # Redirect to frontend home
-    response.set_cookie('user_email', user_info.get('email', ''))
-    return response
+@ns_auth.route('/authorize')
+class Authorize(Resource):
+    @ns_auth.doc('google_authorize')
+    def get(self):
+        """Handle Google OAuth callback"""
+        token = google.authorize_access_token()
+        resp = google.get('userinfo')
+        user_info = resp.json()
+        session['user'] = user_info
+        return redirect('/')
 
-@app.route('/api/logout')
-def logout():
-    session.pop('user', None)
-    response = make_response(redirect('/'))
-    response.set_cookie('user_email', '', expires=0)
-    return response
+@ns_auth.route('/logout')
+class Logout(Resource):
+    @ns_auth.doc('logout')
+    def get(self):
+        """Logout user"""
+        session.pop('user', None)
+        return {'message': 'Logged out successfully'}
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) 
+    app.run(host='0.0.0.0', port=5001, debug=True) 

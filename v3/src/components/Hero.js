@@ -1,166 +1,173 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { FaExchangeAlt, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaSearch } from 'react-icons/fa';
 
 const Hero = () => {
-  const scrollToPlanner = () => {
-    const element = document.getElementById('trip-planner');
-    element?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const [isRoundTrip, setIsRoundTrip] = useState(true);
+  const [fromLocation, setFromLocation] = useState('');
+  const [toLocation, setToLocation] = useState('');
+  const [departureDate, setDepartureDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [travelers, setTravelers] = useState(1);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80')`
+          backgroundImage: `url('https://images.unsplash.com/photo-1528127269322-539801943592?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
         }}
       >
-        <div className="absolute inset-0 bg-primary-50 bg-opacity-60"></div>
-      </div>
-
-      {/* Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ 
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{ 
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-20 left-10 opacity-20"
-        >
-          <i className="fas fa-plane text-white text-6xl transform rotate-12"></i>
-        </motion.div>
-        
-        <motion.div
-          animate={{ 
-            x: [100, 0, 100],
-            y: [0, 30, 0],
-          }}
-          transition={{ 
-            duration: 15,
-            repeat: Infinity,
-            ease: "linear",
-            delay: 5
-          }}
-          className="absolute top-40 right-20 opacity-15"
-        >
-          <i className="fas fa-globe text-white text-8xl"></i>
-        </motion.div>
-
-        <motion.div
-          animate={{ 
-            y: [0, -30, 0],
-            rotate: [0, 360]
-          }}
-          transition={{ 
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-            delay: 10
-          }}
-          className="absolute bottom-32 left-1/4 opacity-10"
-        >
-          <i className="fas fa-map-marked-alt text-white text-7xl"></i>
-        </motion.div>
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-        >
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
           <motion.h1 
-            className="hero-text mb-4 md:mb-6 text-4xl md:text-6xl font-bold text-gray-800 drop-shadow-lg"
+            className="text-4xl md:text-6xl font-display font-bold text-white mb-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: 0.6 }}
           >
-            Discover Your Next
-            <br />
-            <span className="text-blue-700 drop-shadow-lg">Adventure</span>
+            Explore Thailand
           </motion.h1>
-          
-          <motion.p 
-            className="text-lg md:text-xl text-gray-700 drop-shadow-lg font-medium mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
-          >
-            Let our AI-powered travel planner craft personalized itineraries that turn your dream destinations into unforgettable journeys.
-          </motion.p>
+        </div>
 
-          <motion.div 
-            className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-8 md:mb-10"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={scrollToPlanner}
-              className="btn-primary text-base md:text-lg px-6 py-3 md:px-8 md:py-4 shadow-xl"
+        {/* Search Form */}
+        <motion.div 
+          className="bg-white rounded-xl shadow-lg p-4 md:p-6 max-w-5xl mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          {/* Trip Type Toggle */}
+          <div className="flex gap-4 mb-6">
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                isRoundTrip 
+                  ? 'bg-brand-primary text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setIsRoundTrip(true)}
             >
-              <i className="fas fa-rocket mr-2"></i>
-              Plan My Trip
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="glass-effect text-gray-800 font-semibold py-3 px-6 md:py-4 md:px-8 rounded-xl transition duration-300 ease-in-out hover:bg-white hover:bg-opacity-30 text-base md:text-lg"
+              <FaExchangeAlt className="rotate-90" />
+              Round Trip
+            </button>
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                !isRoundTrip 
+                  ? 'bg-brand-primary text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setIsRoundTrip(false)}
             >
-              <i className="fas fa-play mr-2"></i>
-              Watch Demo
-            </motion.button>
-          </motion.div>
+              <FaExchangeAlt />
+              One Way
+            </button>
+          </div>
 
-          {/* Stats */}
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.8 }}
-          >
-            {[
-              { number: "10K+", label: "Happy Travelers" },
-              { number: "150+", label: "Destinations" },
-              { number: "98%", label: "Satisfaction Rate" }
-            ].map((stat, index) => (
-              <motion.div 
-                key={index}
-                className="bg-white bg-opacity-80 border border-card-border rounded-2xl p-4 md:p-6 text-center shadow-soft"
-                whileHover={{ scale: 1.05 }}
+          {/* Search Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <FaMapMarkerAlt className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="From where?"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                value={fromLocation}
+                onChange={(e) => setFromLocation(e.target.value)}
+              />
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <FaMapMarkerAlt className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Where to?"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                value={toLocation}
+                onChange={(e) => setToLocation(e.target.value)}
+              />
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <FaCalendarAlt className="text-gray-400" />
+              </div>
+              <input
+                type="date"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
+              />
+            </div>
+
+            {isRoundTrip && (
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <FaCalendarAlt className="text-gray-400" />
+                </div>
+                <input
+                  type="date"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <FaUser className="text-gray-400" />
+              </div>
+              <select
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent appearance-none"
+                value={travelers}
+                onChange={(e) => setTravelers(Number(e.target.value))}
               >
-                <div className="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-gray-700 text-base md:text-lg">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                {[1, 2, 3, 4, 5, 6].map(num => (
+                  <option key={num} value={num}>
+                    {num} {num === 1 ? 'Traveler' : 'Travelers'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="mt-6 flex justify-center">
+            <button className="flex items-center gap-2 bg-brand-primary hover:bg-primary-600 text-white font-semibold px-8 py-3 rounded-lg transition-all">
+              <FaSearch />
+              Search
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Rating */}
+        <motion.div 
+          className="flex items-center justify-center gap-2 mt-6 text-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="flex -space-x-2">
+            <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="User" className="w-8 h-8 rounded-full border-2 border-white" />
+            <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="User" className="w-8 h-8 rounded-full border-2 border-white" />
+            <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="User" className="w-8 h-8 rounded-full border-2 border-white" />
+          </div>
+          <div className="flex items-center gap-1 text-yellow-400">
+            ★★★★★
+          </div>
+          <span className="text-sm">4.5</span>
+          <span className="text-sm text-gray-300">(10K Reviews)</span>
         </motion.div>
       </div>
-
-      {/* Scroll Indicator */}
-      <motion.div 
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-bounce"></div>
-        </div>
-      </motion.div>
     </section>
   );
 };

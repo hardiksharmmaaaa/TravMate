@@ -7,20 +7,38 @@ module.exports = {
     extend: {
       fontFamily: {
         'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Playfair Display', 'serif'],
+        'display': ['Poppins', 'sans-serif'],
       },
       colors: {
+        brand: {
+          primary: '#1A47B8', // Travcart blue
+          secondary: '#FF385C', // Accent color
+          dark: '#1E1E1E',
+          light: '#F5F5F5',
+        },
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#E6EBF4',
+          100: '#C2D1E8',
+          200: '#9AB3DB',
+          300: '#7295CE',
+          400: '#4A77C1',
+          500: '#1A47B8', // Base primary color
+          600: '#153C9E',
+          700: '#113184',
+          800: '#0D266A',
+          900: '#091B50',
+        },
+        secondary: {
+          50: '#FFE6E9',
+          100: '#FFC2CB',
+          200: '#FF9AA8',
+          300: '#FF7285',
+          400: '#FF4A62',
+          500: '#FF385C', // Base secondary color
+          600: '#DB2E4E',
+          700: '#B72440',
+          800: '#931A32',
+          900: '#701024',
         },
         accent: {
           50: '#fef3c7',
@@ -48,7 +66,7 @@ module.exports = {
         }
       },
       backgroundImage: {
-        'hero-pattern': "linear-gradient(to right bottom, rgba(59, 130, 246, 0.8), rgba(14, 165, 233, 0.8))",
+        'hero-pattern': "linear-gradient(rgba(26, 71, 184, 0.8), rgba(26, 71, 184, 0.8))",
         'card-gradient': "linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0))",
       },
       animation: {
@@ -76,9 +94,15 @@ module.exports = {
         }
       },
       boxShadow: {
-        'soft': '0 2px 15px 0 rgba(0, 0, 0, 0.1)',
-        'medium': '0 4px 25px 0 rgba(0, 0, 0, 0.15)',
-        'large': '0 10px 40px 0 rgba(0, 0, 0, 0.2)',
+        'soft': '0 2px 15px 0 rgba(0, 0, 0, 0.05)',
+        'medium': '0 4px 25px 0 rgba(0, 0, 0, 0.1)',
+        'large': '0 10px 40px 0 rgba(0, 0, 0, 0.15)',
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+      },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
       }
     },
   },

@@ -4,6 +4,5 @@ flask-restx==1.1.0
 werkzeug==2.0.3
 python-dotenv>=1.0.0
 openai>=1.0.0
-authlib
 crewai
 langchain-openai 

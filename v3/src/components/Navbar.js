@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,35 +16,12 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    // Check for user_email cookie
-    const match = document.cookie.match(/user_email=([^;]+)/);
-    if (match) {
-      setIsLoggedIn(true);
-      setUserEmail(decodeURIComponent(match[1]));
-    } else {
-      setIsLoggedIn(false);
-      setUserEmail('');
-    }
-  }, []);
-
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Plan Trip', path: '/#trip-planner' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
-
-  const handleLogin = () => {
-    window.location.href = '/api/login';
-  };
-
-  const handleLogout = async () => {
-    await axios.get('/api/logout');
-    setIsLoggedIn(false);
-    setUserEmail('');
-    window.location.reload();
-  };
 
   return (
     <motion.nav
@@ -100,22 +74,6 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
-            {/* Google Auth Button */}
-            {isLoggedIn ? (
-              <button
-                onClick={handleLogout}
-                className="btn-secondary border-primary-600 text-primary-600 hover:bg-primary-50 ml-4"
-              >
-                <i className="fab fa-google mr-2"></i> Sign Out
-              </button>
-            ) : (
-              <button
-                onClick={handleLogin}
-                className="btn-primary ml-4"
-              >
-                <i className="fab fa-google mr-2"></i> Sign In with Google
-              </button>
-            )}
           </div>
 
           {/* Mobile Menu Button */}

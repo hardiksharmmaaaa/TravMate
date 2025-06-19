@@ -1,11 +1,9 @@
-from flask import Flask, request, jsonify, redirect, session, url_for
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restx import Api, Resource, fields
 import sys
 import os
 from datetime import datetime
-from authlib.integrations.flask_client import OAuth
-from flask import make_response
 
 # Add the parent directory to the Python path to import trip_agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,12 +19,11 @@ CORS(app)  # Enable CORS for React frontend
 api = Api(app, version='1.0', 
     title='TravMate API',
     description='AI-Powered Trip Planning API',
-    doc='/api/docs'  # Swagger UI will be available at /api/docs
+    doc='/api/docs'
 )
 
 # Create namespaces for different API endpoints
 ns_trip = api.namespace('trip', description='Trip planning operations')
-ns_auth = api.namespace('auth', description='Authentication operations')
 
 # Define models for request/response
 trip_input = api.model('TripInput', {
@@ -37,24 +34,6 @@ trip_input = api.model('TripInput', {
     'interests': fields.String(required=True, description='Travel interests'),
     'destination': fields.String(required=False, description='Preferred destination country')
 })
-
-# --- Google OAuth Setup ---
-app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
-
-# Configure OAuth
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id=os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID'),  # <-- Insert your Google Client ID here
-    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET'),  # <-- Insert your Google Client Secret here
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    client_kwargs={'scope': 'openid email profile'},
-)
 
 class TripPlannerAPI:
     def __init__(self):
@@ -229,87 +208,57 @@ class TripPlannerAPI:
             
             guide_result = guide_crew.kickoff()
             
-            # Format all results
-            formatted_results = {
-                'cities': self.format_ai_output(city_result),
-                'hotels': self.format_ai_output(hotel_result),
-                'budget': self.format_ai_output(budget_result),
-                'itinerary': self.format_ai_output(itinerary_result),
-                'local_guide': self.format_ai_output(guide_result),
-                'combined_itinerary': self.create_combined_itinerary(
-                    city_result, hotel_result, budget_result, itinerary_result, guide_result
-                )
-            }
-            
-            return formatted_results
+            # Format and combine all results
+            return self.create_combined_itinerary(
+                city_result,
+                hotel_result,
+                budget_result,
+                itinerary_result,
+                guide_result
+            )
             
         except Exception as e:
             raise Exception(f"Error planning trip: {str(e)}")
 
     def calculate_duration(self, start_date, end_date):
-        """Calculate trip duration"""
+        """Calculate trip duration from start and end dates"""
         try:
-            if isinstance(start_date, str):
-                start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
-            else:
-                start = start_date
+            if not start_date or not end_date:
+                return "1 week"  # Default duration
                 
-            if isinstance(end_date, str):
-                end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
-            else:
-                end = end_date
-                
-            duration = (end - start).days
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+            days = (end - start).days
             
-            if duration <= 3:
+            if days <= 3:
                 return "1-3 days"
-            elif duration <= 7:
+            elif days <= 7:
                 return "4-7 days"
-            elif duration <= 14:
+            elif days <= 14:
                 return "1-2 weeks"
-            elif duration <= 28:
+            elif days <= 30:
                 return "2-4 weeks"
             else:
                 return "1+ month"
-        except:
-            return "1 week"
+                
+        except Exception:
+            return "1 week"  # Default duration if there's an error
 
     def create_combined_itinerary(self, city_result, hotel_result, budget_result, itinerary_result, guide_result):
-        """Create a comprehensive itinerary combining all results"""
-        combined = f"""
-        <div class="space-y-6">
-            <div class="bg-blue-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-blue-800 mb-4">🌟 Recommended Destinations</h2>
-                {self.format_ai_output(city_result)}
-            </div>
-            
-            <div class="bg-green-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-green-800 mb-4">🏨 Accommodation Options</h2>
-                {self.format_ai_output(hotel_result)}
-            </div>
-            
-            <div class="bg-yellow-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-yellow-800 mb-4">�� Budget Breakdown</h2>
-                {self.format_ai_output(budget_result)}
-            </div>
-            
-            <div class="bg-purple-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-purple-800 mb-4">📅 Daily Itinerary</h2>
-                {self.format_ai_output(itinerary_result)}
-            </div>
-            
-            <div class="bg-red-50 p-6 rounded-xl">
-                <h2 class="text-2xl font-bold text-red-800 mb-4">🗺️ Local Insights & Tips</h2>
-                {self.format_ai_output(guide_result)}
-            </div>
-        </div>
-        """
-        return combined
+        """Create a combined and formatted itinerary from all results"""
+        try:
+            return {
+                'cities': self.format_ai_output(city_result),
+                'hotels': self.format_ai_output(hotel_result),
+                'budget': self.format_ai_output(budget_result),
+                'itinerary': self.format_ai_output(itinerary_result),
+                'local_guide': self.format_ai_output(guide_result)
+            }
+        except Exception as e:
+            raise Exception(f"Error creating combined itinerary: {str(e)}")
 
-# Initialize the trip planner
 trip_planner = TripPlannerAPI()
 
-# API Routes with Swagger documentation
 @ns_trip.route('/plan')
 class TripPlanner(Resource):
     @ns_trip.expect(trip_input)
@@ -333,32 +282,6 @@ class HealthCheck(Resource):
     def get(self):
         """Check if the API is running"""
         return {'status': 'healthy', 'timestamp': datetime.now().isoformat()}
-
-@ns_auth.route('/login')
-class Login(Resource):
-    @ns_auth.doc('google_login')
-    def get(self):
-        """Initiate Google OAuth login"""
-        return google.authorize_redirect(url_for('authorize', _external=True))
-
-@ns_auth.route('/authorize')
-class Authorize(Resource):
-    @ns_auth.doc('google_authorize')
-    def get(self):
-        """Handle Google OAuth callback"""
-        token = google.authorize_access_token()
-        resp = google.get('userinfo')
-        user_info = resp.json()
-        session['user'] = user_info
-        return redirect('/')
-
-@ns_auth.route('/logout')
-class Logout(Resource):
-    @ns_auth.doc('logout')
-    def get(self):
-        """Logout user"""
-        session.pop('user', None)
-        return {'message': 'Logged out successfully'}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 
